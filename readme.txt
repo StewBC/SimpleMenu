@@ -6,17 +6,17 @@ Python version.
 
 The user can set the folling elements for the menu, all of which are optional,
 except of the "items" element:
-  y				- Row height of upper left.  If omitted, center on screen in y
-  x				- Column of upper left.  If omitted, center on screen in x
-  width			- Width of menu screen. If omitted, longest item length
-  height		- Height of menu screen. If omitted, items+head+foot+pad
-  title			- Title to be shown centered. If omitted, no header+header pad
-  items			- List/array of menu items user can choose from
-  callbacks		- List/array of callback functions for each item
-  states		- List of enabled/disabled states for each item
-  footer		- Text to scroll/wrap at the bottom of the menu
-  header_height	- Padding lines between header and items. default = 2
-  footer_height	- Padding lines between items and footer. default = 2
+  y             - Row height of upper left.  If omitted, center on screen in y
+  x             - Column of upper left.  If omitted, center on screen in x
+  width         - Width of menu screen. If omitted, longest item length
+  height        - Height of menu screen. If omitted, items+head+foot+pad
+  title         - Title to be shown centered. If omitted, no header+header pad
+  items         - List/array of menu items user can choose from
+  callbacks     - List/array of callback functions for each item
+  states        - List of enabled/disabled states for each item
+  footer        - Text to scroll/wrap at the bottom of the menu
+  header_height - Padding lines between header and items. default = 2
+  footer_height - Padding lines between items and footer. default = 2
 
 In both the C and Python version user data can also be attached and viewed/
 edited in callbacks.
