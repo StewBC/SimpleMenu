@@ -1,3 +1,7 @@
+"""
+    menu.py is a Windows/Linux/OS X simple curses menu
+    system by Stefan Wessels, January 2017.
+"""
 import curses
 import time
 import copy
