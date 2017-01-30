@@ -7,6 +7,13 @@
 #include <string.h>
 #include <curses.h>
 
+// menu return values
+#define MENU_ERROR_TOO_SMALL    -5  //the visible area of the menu is too small for even 1 menu-item
+#define MENU_ERROR_NONE_ENABLED -4  //menu contains no "enabled" menu items
+#define MENU_ERROR_NOT_ONSCREEN -3  //top left corner of menu isn't on-screen enough to show a menu
+#define MENU_ERROR_WINDOW_SMALL -2  //the window is too small to show a menu
+#define MENU_ERROR_CANCEL       -1  //ESC key pressed to leave menu
+
 // array sentinels/placeholders
 #define _MENU_ENABLED			(1)
 #define _MENU_DISABLED			(-1)
@@ -29,9 +36,9 @@
 #define _MENU_INPUT_BACKUP    	_MENU_INPUT_KEY_ESCAPE
 
 /* 
-	Thes MENU_ defines are mandatory but the 6, 7, 10... are for demo purposes
+	thes MENU_ defines are mandatory but the 6, 7, 10... are for demo purposes
 	and will need to be set to whatever the application defines for color_pairs.
-	See defenition of init_pair later.  Pick COLOR_PAIRs here for menu items
+	see defenition of init_pair later.  Pick COLOR_PAIRs here for menu items
 */
 #define MENU_CLR_TITLE      6
 #define MENU_CLR_ITEMS      7
@@ -47,15 +54,15 @@
 
 #include <windows.h>
 
-// This does not exist in Windows
+// this does not exist in Windows
 struct timespec { LARGE_INTEGER count; long tv_nsec; };
 #define CLOCK_MONOTONIC		0
 
-// For initialization
+// for initialization
 static BOOL gMenu_time_init = 1;
 static LARGE_INTEGER gCountsPerSec;
 
-// Get a nanosecond time (ignore seconds but easy to add if needed)
+// get a nanosecond time (ignore seconds but easy to add if needed)
 int clock_gettime(int dummy, struct timespec *ct)
 {
     if(gMenu_time_init)
@@ -100,7 +107,7 @@ long _menu_elapsedTime(struct timespec start, struct timespec end)
 
 #endif
 
-// Prototype for callback function
+// prototype for callback function
 struct tagMenuItems;
 typedef int (*cbf_ptr)(struct tagMenuItems *, int);
 
@@ -297,12 +304,13 @@ void menu_cleanup(MenuItems *menuItems)
 	}
 }
 
-// shows a menu and returns user choice or error
-/* return values are:
-	-5  The visible area of the menu is too small for even 1 menu-item
-	-4  Menu contains no "enabled" menu items
-	-3  Top left corner of menu isn't on-screen enough to show a menu
-	-2  The window is too small to show a menu
+/* 
+shows a menu and returns user choice or error
+    return values are:
+	-5  the visible area of the menu is too small for even 1 menu-item
+	-4  menu contains no "enabled" menu items
+	-3  top left corner of menu isn't on-screen enough to show a menu
+	-2  the window is too small to show a menu
 	-1  ESC key pressed to leave menu
 	0   1 st menu item selected
 	1   2 nd menu item selected
@@ -333,12 +341,12 @@ int menu(MenuItems *menuItems)
 
     // make sure there are items provided
     if(!menuItems->items || !*menuItems->items)
-    	return -4;
+    	return MENU_ERROR_NONE_ENABLED;
 
-    // make sure there's enough screen to display at leaset line with the selectors (><) and 1 char
+    // make sure there's enough screen to display at least line with the selectors (><) and 1 char
     getmaxyx(stdscr, sy, sx);
     if(sy < 1 || sx < 3)
-        return -2;
+        return MENU_ERROR_WINDOW_SMALL;
 
     // create placeholder y/x locations
    	_y = _MENU_NONE == menuItems->y ? 0 : menuItems->y;
@@ -346,7 +354,7 @@ int menu(MenuItems *menuItems)
 
     // make sure the top left edge of the menu is on-screen
     if(_y < 0 || _y >= sy || _x < 0 || _x > sx-3)
-        return -3;
+        return MENU_ERROR_NOT_ONSCREEN;
 
     // get sizes of menu elements
     numMenuItems = _menu_len(menuItems->items);
@@ -384,8 +392,8 @@ int menu(MenuItems *menuItems)
     // show 1st enabled item as selected
     selectedItem = _menu_next_item(menuItems, -1, 1);
     if(selectedItem > numMenuItems)
-        return -4;
-    // Handle 1st items selectable item not being on-screen
+        return MENU_ERROR_NONE_ENABLED;
+    // handle 1st selectable item not being on-screen
     topItem = 0;
     if(selectedItem - topItem >= numVisibleItems)
         topItem = selectedItem - numVisibleItems + 1;
@@ -398,7 +406,7 @@ int menu(MenuItems *menuItems)
 
     // if no items can be shown then throw exception
     if(numVisibleItems < 1)
-        return -5;
+        return MENU_ERROR_TOO_SMALL;
 
     // init the line (y) variable
     line = menuItems->y;
@@ -409,6 +417,7 @@ int menu(MenuItems *menuItems)
     	attron(COLOR_PAIR(MENU_CLR_TITLE));
         mvprintw(line, menuItems->x, " %*.s%.*s%*.s ", _menu_max(0,((menuItems->width+(titleLength % 2 ? 0 : 1))/2)-(titleLength/2)), "", menuItems->width, menuItems->title, _menu_max(0,(menuItems->width/2)-(titleLength/2)), "");
         line += 1;
+        // pad out the header area
         while(line - menuItems->y < numMenuHeaders)
         {
             mvprintw(line, menuItems->x, " %*.s ", menuItems->width, "");
@@ -436,10 +445,12 @@ int menu(MenuItems *menuItems)
         {
             char displayLength, displayOpen = ' ';
 
+            // pick the enabled/disabled colour
             if(!menuItems->states || i >= numMenuStates || menuItems->states[i] == _MENU_ENABLED)
                 attron(COLOR_PAIR(MENU_CLR_ITEMS));
             else
                 attron(COLOR_PAIR(MENU_CLR_DISABLED));
+            // handle the item that's selected
             if(i == selectedItem)
             {
                 displayOpen = '>';
@@ -502,7 +513,7 @@ int menu(MenuItems *menuItems)
         {
             int remain = footerLength - footerOffset;
             mvprintw(line, menuItems->x, " %.*s", menuItems->width, &menuItems->footer[footerOffset]);
-            // Fill the footer ine with the footer text by wrapping
+            // fill the footer ine with the footer text by wrapping
             while(remain < menuItems->width)
             {
                 mvprintw(line, menuItems->x+remain, " %.*s", menuItems->width-remain, menuItems->footer);
@@ -541,9 +552,10 @@ int menu(MenuItems *menuItems)
                     {
                         i = _menu_next_item(menuItems, -1, 1);
                         if(i >= numMenuItems)
-                            return -4;
+                            return MENU_ERROR_NONE_ENABLED;
                         topItem = 0;
                     }
+                    // make sure newly selected item is visible
                     if(i - topItem >= numVisibleItems)
                         topItem = i - numVisibleItems + 1;
                     selectedItem = i;
@@ -556,7 +568,7 @@ int menu(MenuItems *menuItems)
                     {
                         i = _menu_next_item(menuItems, numMenuItems, -1);
                         if(i < 0)
-                            return -4;
+                            return MENU_ERROR_NONE_ENABLED;
                         topItem = _menu_max(0,numMenuItems - numVisibleItems);
                     }
                     if(topItem > i)
@@ -573,12 +585,12 @@ int menu(MenuItems *menuItems)
                     // see if there's a callback and that it's a function
                     if(selectedItem < _menu_len(menuItems->callbacks) && _MENU_NO_CALLBACK != menuItems->callbacks[selectedItem])
                     {
-                    	// the callbak return value is 0 or a key-define
+                    	// the callbak return value should be 0 or a key-define
                         key = menuItems->callbacks[selectedItem](menuItems, selectedItem);
                         // re-check how many items in the menu as a callback can add/delete items
                         numMenuItems = _menu_len(menuItems->items);
                         if(!numMenuItems)
-                        	return -4;
+                        	return MENU_ERROR_NONE_ENABLED;
                         numMenuStates = menuItems->states ? _menu_count(menuItems->states) : 0;
                     }
                 }
@@ -588,9 +600,9 @@ int menu(MenuItems *menuItems)
             }
             // ESC key pressed exits with -1
             else if(key & _MENU_INPUT_BACKUP)
-                return -1;
+                return MENU_ERROR_CANCEL;
             else
-                break; // Ignore other key-values
+                break; // ignore other key-values
         }
     }
 }
@@ -768,6 +780,7 @@ int main()
     initScr();
 
     // create the MenuItems class with some tunable parameters
+    // comment out anything here to see how it affects the menu
     menuInit(&menuItems);
     menuItems.footer_height=0;
     menuItems.width=33;
@@ -792,7 +805,7 @@ int main()
 
     // hide the cursor
     curs_set(0);
-    // Show and run the menu
+    // show and run the menu
     item = menu(&menuItems);
     // clean up the self-owned memory if needed
     menu_cleanup(&menuItems);
