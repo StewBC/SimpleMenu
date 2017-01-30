@@ -4,6 +4,9 @@ These files contain a menu "function" for/in both C and Python, using curses
 on Windows, Linux and OS X.  The C version is more or less a port of the
 Python version.  
 
+For Windows, I used PDCurses34 and after unzipping, I put menu.c in the win32
+folder.
+
 The user can set the folling elements for the menu, all of which are optional,
 except of the "items" element:
   y             - Row height of upper left.  If omitted, center on screen in y
@@ -30,6 +33,11 @@ constructors, etc.
 
 The two menu.* files do compile and run as-is so they are self documented
 and illustrate the functionality.
+
+On windows, compile with pdcurses.lib in the folder (and I used VS 2015):
+cl .\menu.c -I <path to directory with curses.h> pdcurses.lib user32.lib
+On Linux & OS X, using GNU c:
+gcc -o menu menu.c -l curses
 
 The original idea for this was in C in the cc65 chess I wrote for the 
 Commodore 64.  I ported that version to Python, then improved it a ton and
