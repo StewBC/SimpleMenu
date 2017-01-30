@@ -15,7 +15,7 @@ except ImportError as e:
     import select
 
 
-#menu key handling
+# menu key handling
 INPUT_MOTION    = [curses.KEY_UP, curses.KEY_DOWN]
 INPUT_SELECT    = [curses.KEY_ENTER, 10, 13]
 INPUT_BACKUP    = 27 # ESC key
@@ -306,9 +306,9 @@ def menu(menuItems):
                     break
 
 """
-This code is for demo purposes.  
+this code is for demo purposes.  
 
-The callbacks are installed on the menu items to change the behavior or look of
+the callbacks are installed on the menu items to change the behavior or look of
 the menu, or to affect a variable that needs "tuning" through the menu
 """
 
@@ -316,6 +316,11 @@ the menu, or to affect a variable that needs "tuning" through the menu
 def change(menuItems, selectedItem):
     value = 1-int(menuItems.items[selectedItem])
     menuItems.items[selectedItem] = "{}".format(value)
+    if not menuItems.states:
+        menuItems.states = []
+    if len(menuItems.states) < selectedItem+3:
+        for i in range(0, selectedItem+3):
+            menuItems.states.append(1);
     for i in range(selectedItem+1, selectedItem+3):
         menuItems.states[i] = value
     return curses.KEY_DOWN
@@ -368,6 +373,7 @@ def main(win):
     value = 10
 
     # create the MenuItems class with some tunable parameters
+    # comment out any of these to see how it affects the menu
     menuItems = MenuItems(
         callbacks=callbacks,
         footer_height=0,
@@ -394,7 +400,7 @@ def main(win):
     # hide the cursor
     curses.curs_set(0)
 
-    # Show and run the menu
+    # show and run the menu
     item = menu(menuItems)
 
     # enable a cursor and show how the menu was terminated
