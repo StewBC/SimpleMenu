@@ -22,6 +22,9 @@
 #define _MENU_NO_CALLBACK       ((cbf_ptr)-1)
 #define _MENU_TERMINAL          (0)
 
+// number of nanoseconds in a second
+#define _MENU_BILLION           (1E9)
+
 // how fast the footer and too long menu items scroll
 #define _MENU_SCROLL_SPEED      (_MENU_BILLION/8)
 
@@ -46,9 +49,6 @@
 #define MENU_CLR_SELECT         8
 #define MENU_CLR_DISABLED       5
 
-// number of nanoseconds in a second
-#define _MENU_BILLION           (1E9)
-
 // define clock_gettime for windows and a platform specific time diff function
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 
@@ -59,15 +59,15 @@ struct timespec { LARGE_INTEGER count; long tv_nsec; };
 #define CLOCK_MONOTONIC         0
 
 // for initialization
-static BOOL gMenu_time_init = 1;
+static BOOL gMenuTimeInit = 1;
 static LARGE_INTEGER gCountsPerSec;
 
 // get a nanosecond time (ignore seconds but easy to add if needed)
 int clock_gettime(int dummy, struct timespec *ct)
 {
-    if(gMenu_time_init)
+    if(gMenuTimeInit)
     {
-        gMenu_time_init = 0;
+        gMenuTimeInit = 0;
 
         if(0 == QueryPerformanceFrequency(&gCountsPerSec))
             gCountsPerSec.QuadPart = 0;
@@ -748,7 +748,7 @@ void initScr(void)
     }
 }
 
-// called from the curses.wrapper - main program
+// demo (main) program
 int main()
 {
     MenuItems menuItems;
