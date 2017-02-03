@@ -60,7 +60,7 @@ class MenuItems:
         self.callbacks = kwargs.get('callbacks', None)
         self.states = kwargs.get('states', None)
         self.footer = kwargs.get('footer', None)
-        self.header_height = kwargs.get('header_height', 2)
+        self.title_height = kwargs.get('title_height', 2)
         self.footer_height = kwargs.get('footer_height', 2)
     def __repr__(self):
         return "[y:{} x:{} w:{} h:{}]".format(self.y, self.x, self.width, self.height)
@@ -111,7 +111,7 @@ def menu(menuItems):
 
     # get height of menu
     numMenuItems = len(menuItems.items)
-    numMenuHeaders = menuItems.header_height if menuItems.title is not None else 0
+    numMenuHeaders = menuItems.title_height if menuItems.title is not None else 0
     numMenuFooters = menuItems.footer_height if menuItems.footer is not None else 0
 
     # get length of footer
