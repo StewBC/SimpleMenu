@@ -1,26 +1,26 @@
 /*
-    demo.c uses wcmenu.h to implement a simple curses menu
-    system by Stefan Wessels, February 2017.
+    demo.c uses wcmenu.h to implement a curses menu
+    by Stefan Wessels, February 2017.
 */
 #include "wcmenu.h"
 #include <curses.h>
 
-// colour pairs the application (demo) uses
-#define DEMO_BLUE_CYAN          6
+/* colour pairs the application (demo) uses */
+#define DEMO_BLUE_CYAN          6               /* 1 - 5 are WC_CLR defines */
 #define DEMO_YELLOW_BLUE        WC_CLR_DISABLED
 #define DEMO_GREEN_BLUE         WC_CLR_TITLE
 #define DEMO_WHITE_BLUE         WC_CLR_ITEMS
 #define DEMO_WHITE_GREEN        WC_CLR_SELECT
 #define DEMO_CYAN_BLUE          WC_CLR_FOOTER
 
-// app specific user structure pointed to by userData_ptr
+/* app specific user structure pointed to by userData_ptr */
 typedef struct tagUserData
 {
     int value;
     int length;
 } UserData;
 
-// make a buffer and use printf style formatting to put a string in the buffer
+/* make a buffer and use printf style formatting to put a string in the buffer */
 char *makeString(char *format, ... )
 {
     int size;
@@ -41,13 +41,13 @@ char *makeString(char *format, ... )
     return buffer;
 }
 
-// toggle a menu item between 1 (on) and 0 (off) and turn on/off other menu option based on the toggle
+/* toggle a menu item between 1 (on) and 0 (off) and turn on/off other menu option based on the toggle */
 int change(MenuItems *menuItems, int selectedItem)
 {
     int i, value = 1 - atoi(menuItems->items[selectedItem]);
 
-    // if you know the menu will be changed, it's easier to "clone" the memory
-    // before calling menu, otherwise this needs to be in every callback
+    /* if you know the menu will be changed, it's easier to "clone" the memory */
+    /* before calling menu, otherwise this needs to be in every callback */
     if(!menuItems->selfOwnsMemory)
         WC_menu_take_ownership(menuItems);
 
@@ -58,7 +58,7 @@ int change(MenuItems *menuItems, int selectedItem)
     return WC_INPUT_KEY_DOWN;
 }
 
-// update a variable stored in the menuItens class based on selecting the option
+/* update a variable stored in the menuItens class based on selecting the option */
 int increment(MenuItems *menuItems, int selectedItem)
 {
     if(!menuItems->selfOwnsMemory)
@@ -69,7 +69,7 @@ int increment(MenuItems *menuItems, int selectedItem)
     return 0;
 }
 
-// add more options to the menu
+/* add more options to the menu */
 int append(MenuItems *menuItems, int selectedItem)
 {
     int length;
@@ -85,7 +85,7 @@ int append(MenuItems *menuItems, int selectedItem)
     return 0;
 }
 
-// remove extra options from the menu
+/* remove extra options from the menu */
 int delete(MenuItems *menuItems, int selectedItem)
 {
     int length = WC_menu_len(menuItems->items);
@@ -102,7 +102,7 @@ int delete(MenuItems *menuItems, int selectedItem)
     return 0;
 }
 
-// map key presses to key defines
+/* map key presses from curses to wc_input defines */
 int demo_input(void)
 {
     switch(getch())
@@ -122,13 +122,14 @@ int demo_input(void)
     }
 }
 
+/* drawing function using curses */
 void demo_draw(int y, int x, char *string, int length, int color)
 {
     attron(COLOR_PAIR(color));
     mvprintw(y, x, "%-*.*s", length, length, string);
 }
 
-// sets up the colours for curses, the background colour and clears the screen
+/* sets up the colours for curses, the background colour and clears the screen */
 void initScr(void)
 {
     initscr();
@@ -150,7 +151,7 @@ void initScr(void)
     }
 }
 
-// demo (main) program
+/* demo (main) program */
 int main()
 {
     MenuItems menuItems;
@@ -179,63 +180,63 @@ int main()
     };
     cbf_ptr callbacks[] = {WC_NO_CALLBACK, WC_NO_CALLBACK, increment, change, append, delete, 0};
 
-    // init
+    /* init */
     initScr();
 
-    // Get the size of the screen
+    /* Get the size of the screen */
     getmaxyx(stdscr, sy, sx);
 
-    // create the MenuItems class with some tunable parameters
+    /* create the MenuItems class with some tunable parameters */
     WC_menuInit(&menuItems);
 
-    // These must be provided
+    /* These must be provided */
     menuItems.inputFunction = demo_input;
     menuItems.drawFunction = demo_draw;
     menuItems.sy = sy;
     menuItems.sx = sx;
     menuItems.items = items;
 
-    // These are all optional
-    // comment out anything here to see how it affects the menu
-    //menuItems.y=2;
+    /* These are all optional */
+    /* comment out anything here to see how it affects the menu */
+    /*menuItems.y=2; */
     menuItems.x=2;
     menuItems.width=33;
     menuItems.height=12;
     menuItems.title="Hello, World!";
-    // menuItems.title_height = 3;
+    /* menuItems.title_height = 3; */
     menuItems.states = states;
     menuItems.footer="*** Bye, World! It's been nice knowing you, but now it's time for me to go. ";
     menuItems.footer_height=0;
     menuItems.callbacks = callbacks;
     menuItems.userData_ptr = (void*)&userData;
 
-    // add the tunable variable to the class
+    /* add the tunable variable to the class */
     userData.value = 10;
 
-    // add how many items there are to begin with, to the class
+    /* add how many items there are to begin with, to the class */
     userData.length = WC_menu_len(menuItems.items);
 
-    // set a background colour and clear the screen
+    /* set a background colour and clear the screen */
     wbkgd(stdscr, COLOR_PAIR(DEMO_BLUE_CYAN));
     clear();
 
-    // hide the cursor
+    /* hide the cursor */
     curs_set(0);
-    // show and run the menu
+    /* show and run the menu */
     item = WC_menu(&menuItems);
-    // clean up the self-owned memory if needed
+    /* clean up the self-owned memory if needed */
     WC_menu_cleanup(&menuItems);
-    // show the cursor
+    /* show the cursor */
     curs_set(1);
 
-    //enable a cursor and show how the menu was terminated
+    /*enable a cursor and show how the menu was terminated */
     mvprintw(0,0,"Item: %d was selected to exit the menu.", item);
     refresh();
-    // blocking input on
+    /* blocking input on */
     timeout(-1) ;
     getch();
 
-    // shut it all down
+    /* shut it all down */
     endwin() ;
 
     return 0;
