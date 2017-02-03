@@ -588,9 +588,6 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
             menuItems->drawFunction(line, column, " ", 1, WC_CLR_FOOTER);
         }
 
-        /* make it all visible */
-       refresh();
-
         /* calculate a new scroll position for the footer */
         if(WC_menu_elapsedTime(startTime, thisTime) > WC_SCROLL_SPEED)
         {
