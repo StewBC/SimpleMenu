@@ -25,14 +25,21 @@ except of the "items" element, in both the C and Python versions:
   callbacks     - List/array of callback functions for each item
   states        - List of enabled/disabled states for each item
   footer        - Text to scroll/wrap at the bottom of the menu
-  title_height - Padding lines between header and items. default = 2
+  title_height  - Padding lines between header and items. default = 2
   footer_height - Padding lines between items and footer. default = 2
 
-For the C version, there are also these fields that are compulsory to fill in:
+For the C version, there are also these fields: 
+compulsory to fill in:
   inputFunction - function pointer pointing at an input handler
-  drawFunction  - dunction pointer pointing at a render function
+  drawFunction  - function pointer pointing at a render function
   sy            - height of the screen
   sx            - width of the screen
+optional
+  showFunction	- function pointer pointing at a "show" function.  See below
+
+The showFunction in the C version is there to "present" the draw calls to the 
+user.  With curses, this is a good time to call refresh().  With a back-buffer
+this would be a good time to flip the buffer to the front.
 
 The C version still uses character based coordinates so using it with a GUI
 is harder and will best work with a non-proportional (fixed width) font where
