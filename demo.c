@@ -129,6 +129,12 @@ void demo_draw(int y, int x, char *string, int length, int color)
     mvprintw(y, x, "%-*.*s", length, length, string);
 }
 
+/* make all prior demo_draw calls visible if needed */
+void demo_show(void)
+{
+    refresh();
+}
+
 /* sets up the colours for curses, the background colour and clears the screen */
 void initScr(void)
 {
@@ -198,6 +204,8 @@ int main()
 
     /* These are all optional */
     /* comment out anything here to see how it affects the menu */
+    menuItems.showFunction = demo_show;
+
     /*menuItems.y=2; */
     menuItems.x=2;
     menuItems.width=33;
