@@ -81,18 +81,29 @@ int main()
     /* init */
     initScr();
 
-    /* Get the size of the screen */
+    /* get the size of the screen */
     getmaxyx(stdscr, sy, sx);
 
     /* create the MenuItems class with some tunable parameters */
     WC_menuInit(&menuItems);
 
-    /* These must be provided */
+    /* these must be provided */
     menuItems.inputFunction = demo_input;
     menuItems.drawFunction = demo_draw;
     menuItems.sy = sy;
     menuItems.sx = sx;
     menuItems.items = items;
+    /* 
+       if nothing is shown, add a demo_show function and hook it
+       up to menuItems.showFunction.  in demo_show, call refresh()
+       i.e.
+        menuItems.showFunction = demo_show;
+       with the function somewhere before main:
+        void demo_show(void)
+        {
+            refresh();
+        }
+    */
 
     /* set a background colour and clear the screen */
     wbkgd(stdscr, COLOR_PAIR(DEMO_BLUE_CYAN));
