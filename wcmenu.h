@@ -17,7 +17,7 @@ extern "C" {
 #define WC_ERROR_WINDOW_SMALL -2  /*the window is too small to show a menu */
 #define WC_ERROR_CANCEL       -1  /*ESC key pressed to leave menu */
 
-/* Colours to use when draing the menu */
+/* colours to use when draing the menu */
 #define WC_CLR_TITLE          1
 #define WC_CLR_ITEMS          2
 #define WC_CLR_FOOTER         3
@@ -72,7 +72,7 @@ WC_GLOBAL LARGE_INTEGER WC_gCountsPerSec;
 
 #endif /* !Windows */
 
-/* Other needed includes */
+/* other needed includes */
 #include <stdlib.h>
 #include <string.h>
 
@@ -81,9 +81,6 @@ WC_INTERNAL long WC_menu_elapsedTime(struct timespec start, struct timespec end)
 /* prototype for callback function */
 struct tagMenuItems;
 typedef int (*cbf_ptr)(struct tagMenuItems *, int);
-
-/* prototype for input function */
-typedef int (*WC_menu_input)(void);
 
 /* prototype for draw function */
 typedef void (*WC_menu_draw)(int y, int x, char *string, int length, int color);
@@ -95,14 +92,14 @@ typedef struct tagMenuItems
         int sy;                 /* screen size Y */
         int sx;                 /* screen size X */
         char **items;           /* array of char* (text for) items in menu */
-        WC_menu_input inputFunction; /* Menu calls this to read keyboard */
-        WC_menu_draw drawFunction; /* Menu calls this for program to render */
+        int (*inputFunction)(void); /* menu calls this to read keyboard */
+        WC_menu_draw drawFunction; /* menu calls this for program to render */
 
         /* optional */
         int y;                  /* where on-screen in Y */
         int x;                  /* where on-screen in X */
-        int width;              /* how wide */
         int height;             /* how high */
+        int width;              /* how wide */
         char *title;            /* the title text */
         int title_height;       /* pad out the title to # rows */
         char *footer;           /* a scrolling/wrapping footer  */
@@ -110,6 +107,7 @@ typedef struct tagMenuItems
         int *states;            /* enabled/disabled items in menu */
         cbf_ptr *callbacks;     /* callbakcs for selecting items */
         void *userData_ptr;     /* pointer to any user defined data */
+        void (*showFunction)(void); /* called at the end of each frame */
         
         /* internal */
         int  selfOwnsMemory;    /* 1 = call free on elements; 0 = don't */
@@ -279,7 +277,11 @@ WC_INTERNAL int WC_menu_next_item(MenuItems *menuItems, int selectedItem, int di
 /* inits a MenuItems struct to sane values */
 WC_GLOBAL void WC_menuInit(MenuItems *menuItems)
 {
-    menuItems->x = menuItems->y = menuItems->width = menuItems->height = WC_NONE;
+    menuItems->sy = menuItems->sx = WC_NONE;
+    menuItems->inputFunction = 0;
+    menuItems->drawFunction = 0;
+    menuItems->showFunction = 0;
+    menuItems->y = menuItems->x = menuItems->height = menuItems->width = WC_NONE;
     menuItems->title_height = menuItems->footer_height = 2;
     menuItems->title = menuItems->footer = 0;
     menuItems->items = 0;
@@ -587,6 +589,9 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
             column += length;
             menuItems->drawFunction(line, column, " ", 1, WC_CLR_FOOTER);
         }
+
+        if(menuItems->showFunction)
+            menuItems->showFunction();
 
         /* calculate a new scroll position for the footer */
         if(WC_menu_elapsedTime(startTime, thisTime) > WC_SCROLL_SPEED)
