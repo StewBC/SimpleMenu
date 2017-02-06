@@ -461,31 +461,17 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
     /* init the line (y) variable */
     line = menuItems->y;
 
-    /* show the title if there is one to be shown */
-    if(menuItems->title)
-    {
-        int titleLengthClamped = WC_menu_min(titleLength, menuItems->width);
-        int length = ((menuItems->width+(titleLengthClamped % 2 ? 0 : 1))/2)-(titleLengthClamped/2);
-        menuItems->drawFunction(line, menuItems->x, " ", length+1, WC_CLR_TITLE);
-        menuItems->drawFunction(line, length+3, menuItems->title, titleLengthClamped, WC_CLR_TITLE);
-        menuItems->drawFunction(line, length+3+titleLengthClamped, " ", 1+WC_menu_max(0,(menuItems->width/2)-(titleLengthClamped/2)), WC_CLR_TITLE);
-        line += 1;
-        /* pad out the title area */
-        while(line - menuItems->y < numMenuHeaders)
-        {
-            menuItems->drawFunction(line, menuItems->x, " ", menuItems->width+2, WC_CLR_TITLE);
-            line += 1;
-        }
-
-        /* now the menu starts below the title */
-        menuItems->y = line;
-    }
-
     /* get time for scrolling purposes */
     clock_gettime(CLOCK_MONOTONIC,&startTime);
     /* go into the main loop */
     while(1)
     {
+#ifdef _WINDOWS
+		MSG	msg;
+		GetMessage(&msg, (HWND)NULL, 0, 0);
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+#endif //
         /* how many items to draw */
         int numItemsToDraw = WC_menu_min(numMenuItems,topItem+numVisibleItems);
         char displayOpen[2] = " ";
@@ -496,7 +482,24 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
         /* start at the top to draw */
         line = menuItems->y;
 
-        /* show the visible menu items, highlighting the selected item */
+		/* show the title if there is one to be shown */
+		if(menuItems->title)
+		{
+			int titleLengthClamped = WC_menu_min(titleLength, menuItems->width);
+			int length = ((menuItems->width + (titleLengthClamped % 2 ? 0 : 1)) / 2) - (titleLengthClamped / 2) + 1;
+			menuItems->drawFunction(line, menuItems->x, " ", length, WC_CLR_TITLE);
+			menuItems->drawFunction(line, menuItems->x + length, menuItems->title, titleLengthClamped, WC_CLR_TITLE);
+			menuItems->drawFunction(line, menuItems->x + length + titleLengthClamped, " ", 1 + WC_menu_max(0, (menuItems->width / 2) - (titleLengthClamped / 2)), WC_CLR_TITLE);
+			line += 1;
+			/* pad out the title area */
+			while(line - menuItems->y < numMenuHeaders)
+			{
+				menuItems->drawFunction(line, menuItems->x, " ", menuItems->width + 2, WC_CLR_TITLE);
+				line += 1;
+			}
+		}
+		
+		/* show the visible menu items, highlighting the selected item */
         for(i=topItem; i<numItemsToDraw; i++)
         {
             char displayLength;
@@ -561,7 +564,7 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
         }
 
         /* pad out the footer area, if there is one */
-        while(line < menuItems->y + numVisibleItems + numMenuFooters)
+        while(line < menuItems->y + numVisibleItems + numMenuFooters + numMenuHeaders)
         {
             menuItems->drawFunction(line, menuItems->x, " ", menuItems->width+2, WC_CLR_FOOTER);
             line += 1;
