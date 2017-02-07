@@ -11,6 +11,12 @@ includes the header to handle input and drawing.
 The demo.c and simpledemo.c programs illustrate how to use the menu system from
 wcmenu.h, using curses.
 
+windemo.c illustrates how this is used in a Windows app.  Interestingly enough,
+it seems only the Consolas fixed width font works with this scheme.  All other 
+monospace fonts don't render as though they are monospace.  The "space" seems
+to be smaller.  I suspect it's something I don't know about, but Consolas works
+just fine.
+
 For Windows, I used PDCurses34 and after unzipping, I put demo.c and 
 simpledemo.cin the win32 folder.
 
@@ -55,10 +61,15 @@ The Python version is very straight-forward.  The C version is more complicated
 mostly because of the added complexity of memory management, lack of 
 constructors, etc.
 
-On windows, compile with pdcurses.lib in the folder (and I used VS 2015):
+On windows, compile demo and simpledemo with pdcurses.lib in the folder (and I
+used VS 2015):
 cl .\demo.c -I <path to directory with curses.h> pdcurses.lib user32.lib
-On Linux & OS X, using GNU c:
+
+On Linux & OS X, using GNU c for demo and simpledemo:
 gcc -o demo demo.c -l curses
+
+Compile windemo.c on Windows with:
+cl .\windemo.cpp /D "WIN32" /D "_DEBUG" /D "_WINDOWS" gdi32.lib user32.lib
 
 The original idea for this was in C in the cc65 chess I wrote for the 
 Commodore 64.  I ported that version to Python, then improved it a ton and
