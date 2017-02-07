@@ -9,16 +9,14 @@ an include (.h) file and is not curses based.  It's up to the application that
 includes the header to handle input and drawing.  
 
 The demo.c and simpledemo.c programs illustrate how to use the menu system from
-wcmenu.h, using curses.
+wcmenu.h, using curses.  For Windows, I used PDCurses34 and after unzipping, I
+put demo.c and simpledemo.cin the win32 folder.
 
-windemo.c illustrates how this is used in a Windows app.  Interestingly enough,
+windemo.cpp illustrates how this is used in a Windows app.  Interestingly enough,
 it seems only the Consolas fixed width font works with this scheme.  All other 
 monospace fonts don't render as though they are monospace.  The "space" seems
 to be smaller.  I suspect it's something I don't know about, but Consolas works
 just fine.
-
-For Windows, I used PDCurses34 and after unzipping, I put demo.c and 
-simpledemo.cin the win32 folder.
 
 The user can set the folling elements for the menu, all of which are optional,
 except of the "items" element, in both the C and Python versions:
@@ -68,7 +66,7 @@ cl .\demo.c -I <path to directory with curses.h> pdcurses.lib user32.lib
 On Linux & OS X, using GNU c for demo and simpledemo:
 gcc -o demo demo.c -l curses
 
-Compile windemo.c on Windows with:
+Compile windemo.cpp on Windows with:
 cl .\windemo.cpp /D "WIN32" /D "_DEBUG" /D "_WINDOWS" gdi32.lib user32.lib
 
 The original idea for this was in C in the cc65 chess I wrote for the 
