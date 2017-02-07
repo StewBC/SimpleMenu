@@ -471,7 +471,9 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
 		GetMessage(&msg, (HWND)NULL, 0, 0);
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-#endif //
+        if(msg.message == WM_QUIT)
+            return -1;
+#endif //_WINDOWS
         /* how many items to draw */
         int numItemsToDraw = WC_menu_min(numMenuItems,topItem+numVisibleItems);
         char displayOpen[2] = " ";
