@@ -339,15 +339,15 @@ WC_GLOBAL int remove(MenuItems *menuItems, int selectedItem)
 /* debounce windows keys */
 WC_GLOBAL int demo_input(void)
 {
-	static long nInitialKeyDelay = 400000000;
-	static long nRepeatKeyDelay  = 120000000;
+	static unsigned long nInitialKeyDelay = 400000000;
+	static unsigned long nRepeatKeyDelay  = 120000000;
+	static unsigned long nDelayTime = nInitialKeyDelay;
 	static unsigned int nOldRawKeyState = 0;
-	static long nDelayTime = nInitialKeyDelay;
 	static struct timespec oldTime = {0,0};
 	struct timespec nowTime;
 
 	clock_gettime(CLOCK_MONOTONIC, &nowTime);
-	long elapsed = WC_menu_elapsedTime(oldTime, nowTime);
+	unsigned long elapsed = WC_menu_elapsedTime(oldTime, nowTime);
 	oldTime = nowTime;
 	if(nOldRawKeyState == theApp.nRawKeyState)
 	{
@@ -391,7 +391,28 @@ WC_GLOBAL void demo_draw(int y, int x, char *string, int length, int color)
  */
 WC_GLOBAL void demo_show(void)
 {
-	InvalidateRect(theApp.hWnd, 0, false);
+	static unsigned long count = 0;
+	static unsigned long second = 0;
+	static unsigned long fps = 0;
+	static struct timespec oldTime = {0,0};
+	struct timespec nowTime;
+
+	clock_gettime(CLOCK_MONOTONIC, &nowTime);
+	unsigned long elapsed = WC_menu_elapsedTime(oldTime, nowTime);
+	oldTime = nowTime;
+	second += elapsed;
+	if(second > WC_BILLION)
+	{
+		fps = count;
+		second = 0;
+		count = 0;
+	}
+
+	char *str = makeString("%05ld %05ld", count++, fps);
+	HDC hDC = GetDC(theApp.hWnd);
+	TextOut(hDC, 1 * theApp.fontWidth, 1 * theApp.fontWidth, str, strlen(str));
+	ReleaseDC(theApp.hWnd, hDC);
+	free(str);
 }
 
 /* demo (main) program */
@@ -443,7 +464,7 @@ void WinApp::Run(void)
 
     /* these are all optional */
     /* comment out anything here to see how it affects the menu */
-    menuItems.showFunction = demo_show;
+	/* menuItems.showFunction = demo_show; // Add this for rough FPS */ 
 
     /*menuItems.y=2; */
     menuItems.x=2;
