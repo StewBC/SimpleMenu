@@ -1,5 +1,5 @@
 /*
-    windemo.c uses wcmenu.h to implement a curses menu
+    windemo.cpp uses wcmenu.h to implement a menu for Windows GUI
     by Stefan Wessels, February 2017.
 */
 #include "wcmenu.h"
