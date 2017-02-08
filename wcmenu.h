@@ -1,6 +1,7 @@
 /*
     wcmenu.h is a simple menu system by Stefan Wessels, February 2017.
-    It has been tested on Windows, Linux and OS X
+    It has been tested on Windows, Linux and OS X with curses and 
+    it has been tested with Windows GUI on Windows 10.
 */
 
 #ifndef WCMENU_H_
@@ -58,7 +59,7 @@ extern "C" {
 
 #include <windows.h>
 /* this does not exist in Windows */
-struct timespec { LARGE_INTEGER count; long tv_nsec; };
+struct timespec { LARGE_INTEGER count; unsigned long tv_nsec; };
 #define CLOCK_MONOTONIC      0
 WC_INTERNAL int clock_gettime(int dummy, struct timespec *ct);
 
@@ -76,7 +77,7 @@ WC_GLOBAL LARGE_INTEGER WC_gCountsPerSec;
 #include <stdlib.h>
 #include <string.h>
 
-WC_INTERNAL long WC_menu_elapsedTime(struct timespec start, struct timespec end);
+WC_INTERNAL unsigned long WC_menu_elapsedTime(struct timespec start, struct timespec end);
 
 /* prototype for callback function */
 struct tagMenuItems;
@@ -194,7 +195,7 @@ WC_INTERNAL int clock_gettime(int dummy, struct timespec *ct)
 }
 
 /* get the delta between two sub-second timers */
-WC_INTERNAL long WC_menu_elapsedTime(struct timespec start, struct timespec end)
+WC_INTERNAL unsigned long WC_menu_elapsedTime(struct timespec start, struct timespec end)
 {
     return (((end.count.QuadPart - start.count.QuadPart) * WC_BILLION) / WC_gCountsPerSec.QuadPart);
 }
@@ -202,9 +203,9 @@ WC_INTERNAL long WC_menu_elapsedTime(struct timespec start, struct timespec end)
 #else /* !Windows */
 
 /* get the delta between the nanosecond timers (ignoring the seconds component) */
-WC_INTERNAL long WC_menu_elapsedTime(struct timespec start, struct timespec end)
+WC_INTERNAL unsigned long WC_menu_elapsedTime(struct timespec start, struct timespec end)
 {
-    long temp;
+    unsigned long temp;
 
     if ((end.tv_nsec-start.tv_nsec)<0) 
         temp = WC_BILLION+end.tv_nsec-start.tv_nsec;
@@ -468,11 +469,14 @@ WC_GLOBAL int WC_menu(MenuItems *menuItems)
     {
 #ifdef _WINDOWS
 		MSG	msg;
-		GetMessage(&msg, (HWND)NULL, 0, 0);
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-        if(msg.message == WM_QUIT)
-            return -1;
+        if(PeekMessage(&msg, (HWND)NULL, 0, 0, PM_NOREMOVE))
+        {
+    		GetMessage(&msg, (HWND)NULL, 0, 0);
+    		TranslateMessage(&msg);
+    		DispatchMessage(&msg);
+            if(msg.message == WM_QUIT)
+                return -1;
+        }
 #endif //_WINDOWS
         /* how many items to draw */
         int numItemsToDraw = WC_menu_min(numMenuItems,topItem+numVisibleItems);
